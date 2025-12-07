@@ -1,0 +1,6 @@
+outputs/
+*.npy
+*.npz
+*.csv
+*.png
+

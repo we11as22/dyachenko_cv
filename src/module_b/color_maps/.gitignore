@@ -1,0 +1,7 @@
+outputs/
+*.png
+*.svg
+*.html
+*.csv
+*.ply
+

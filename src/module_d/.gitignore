@@ -1,3 +1,17 @@
+# training junk
+artifacts/
+lightning_logs/
+*.pt
+*.ckpt
+*.pth
+*.npy
+*.npz
+*.png
+*.html
+
+# dataset mirror
+ModelNet10/
+ModelNet10.zip
 logs
 outputs
 predict.py

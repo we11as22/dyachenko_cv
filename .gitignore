@@ -1,3 +1,41 @@
+# python noise
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# virtual env / build leftovers
+.venv/
+.env/
+.uv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# editors
+.vscode/
+.idea/
+
+# data & heavy artifacts
+datasets/
+data/
+outputs/
+artifacts/
+logs/
+*.ckpt
+*.pth
+*.pt
+*.tensorboard
+*.tb
+*.npy
+*.npz
+
+# OS clutter
+.DS_Store
+Thumbs.db
 # Python-generated files
 __pycache__/
 *.py[oc]

@@ -1,0 +1,7 @@
+# task artifacts
+outputs/
+*.png
+*.html
+*.xyz
+*.asc
+
