@@ -15,7 +15,7 @@ from pointnet_model import PointNetClassifier
 
 def run_smoke_test():
     """Проверяет, что датасет загружается, модель инициализируется и делает forward pass."""
-    cfg = OmegaConf.load(Path(__file__).with_name("settings.yaml"))
+    cfg = OmegaConf.load(Path(__file__).with_name("conf.yaml"))
     data_cfg = DataConfig(
         root=Path(cfg.data.root),
         num_points=int(cfg.data.num_points),

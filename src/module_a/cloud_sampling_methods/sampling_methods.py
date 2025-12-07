@@ -1,21 +1,19 @@
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
-import logging
-
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 (needed for 3D projection)
+from typing import Callable, Dict, Tuple
 
 import hydra
+import matplotlib.pyplot as plt
+import numpy as np
 from omegaconf import DictConfig
 
 
 @dataclass
 class Config:
-    # I/O
     input_path: str
     output_dir: str
 
@@ -32,209 +30,135 @@ class Config:
     fps_init_index: int | None
 
 
-def load_asc(path: str) -> np.ndarray:
-    """Load a point cloud in ASCII format. Accepts 3 or 4 columns: x y z [class].
+PointCloud = np.ndarray
 
-    Returns an NxC numpy array (C == 3 or 4).
-    """
-    path = Path(path)
+
+def load_cloud(path: Path) -> PointCloud:
+    """Read ASCII cloud (x y z [class])."""
     if not path.exists():
-        raise FileNotFoundError(f"Input file not found: {path}")
-
-    # Try loading; skip empty/comment lines automatically
+        raise FileNotFoundError(path)
     data = np.loadtxt(str(path))
     if data.ndim == 1:
         data = data.reshape(1, -1)
-
     if data.shape[1] not in (3, 4):
-        raise ValueError(
-            f"Unsupported number of columns: {data.shape[1]}; expected 3 or 4"
-        )
-
+        raise ValueError(f"Expected 3 or 4 columns, got {data.shape[1]}")
     return data.astype(float)
 
 
-def save_xyz(path: str | Path, points: np.ndarray) -> None:
-    """Save points to an ASCII .xyz/.asc file with either 3 or 4 columns.
-
-    If points has 4 columns, order is x y z class.
-    """
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_cloud(path: Path, points: PointCloud) -> None:
     fmt = "%.6f %.6f %.6f" if points.shape[1] == 3 else "%.6f %.6f %.6f %.6f"
-    np.savetxt(str(path), points, fmt=fmt)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savetxt(path, points, fmt=fmt)
 
 
-def random_subsampling(
-    points: np.ndarray, n_samples: int, seed: int | None = None
-) -> np.ndarray:
-    """Pick n_samples uniformly at random (without replacement).
-
-    points: (N,3) or (N,4)
-    """
-    rng = np.random.default_rng(seed)
-    N = points.shape[0]
-    if n_samples >= N:
-        return points.copy()
-    idx = rng.choice(N, size=n_samples, replace=False)
-    return points[idx]
+def subsample_random(points: PointCloud, cfg: Config) -> Tuple[PointCloud, float]:
+    start = time.time()
+    rng = np.random.default_rng(cfg.seed)
+    n = points.shape[0]
+    if cfg.n_samples >= n:
+        return points.copy(), time.time() - start
+    idx = rng.choice(n, size=cfg.n_samples, replace=False)
+    return points[idx], time.time() - start
 
 
-def voxel_grid_subsampling(points: np.ndarray, voxel_size: float) -> np.ndarray:
-    """Simple voxel-grid subsampling.
-
-    - Compute integer voxel indices by floor(coord / voxel_size).
-    - Use np.unique on rows of voxel indices to pick the first point that falls into each voxel.
-
-    Returns subsampled points with same columns as input.
-    """
-    if voxel_size <= 0:
-        raise ValueError("voxel_size must be > 0")
-
-    coords = np.floor(points[:, :3] / voxel_size).astype(np.int64)
-    # unique rows and keep first occurrence
-    _, unique_idx = np.unique(coords, axis=0, return_index=True)
-    return points[np.sort(unique_idx)]
+def subsample_voxel(points: PointCloud, cfg: Config) -> Tuple[PointCloud, float]:
+    start = time.time()
+    if cfg.voxel_size <= 0:
+        raise ValueError("voxel_size must be positive")
+    grid = np.floor(points[:, :3] / cfg.voxel_size).astype(np.int64)
+    _, first_idx = np.unique(grid, axis=0, return_index=True)
+    sampled = points[np.sort(first_idx)]
+    return sampled, time.time() - start
 
 
-def farthest_point_sampling(
-    points: np.ndarray, k: int, init_index: int | None = None
-) -> np.ndarray:
-    """Выборка точек по принципу максимального удаления (FPS).
-
-    Алгоритм итеративно выбирает точки, максимально удалённые от уже выбранных,
-    что обеспечивает равномерное покрытие пространства. Сложность O(N * k).
-
-    Args:
-        points: Массив формы (N, >=3), используются только координаты x, y, z
-        k: Количество точек для выборки
-        init_index: Начальная точка (если None, берётся первая)
-    """
-    N = points.shape[0]
-    if k >= N:
-        return points.copy()
+def subsample_fps(points: PointCloud, cfg: Config) -> Tuple[PointCloud, float]:
+    start = time.time()
+    k = min(cfg.n_samples, points.shape[0])
     xyz = points[:, :3]
 
-    if init_index is None:
-        init = 0
-    else:
-        init = int(init_index)
+    chosen = np.empty(k, dtype=np.int64)
+    init = 0 if cfg.fps_init_index is None else int(cfg.fps_init_index)
+    chosen[0] = init
 
-    chosen_idx = np.empty(k, dtype=np.int64)
-    chosen_idx[0] = init
-
-    # Массив квадратов расстояний до ближайшей выбранной точки
-    dist2 = np.full(N, np.inf)
-
-    # Инициализация расстояний от первой выбранной точки
-    last_chosen = xyz[init]
-    diff = xyz - last_chosen
-    dist2 = np.minimum(dist2, np.sum(diff * diff, axis=1))
+    dist2 = np.full(points.shape[0], np.inf)
+    last = xyz[init]
+    dist2 = np.minimum(dist2, np.sum((xyz - last) ** 2, axis=1))
 
     for i in range(1, k):
-        # Выбираем точку с максимальным расстоянием до уже выбранных
-        next_idx = int(np.argmax(dist2))
-        chosen_idx[i] = next_idx
-        last_chosen = xyz[next_idx]
-        # Обновляем расстояния с учётом новой выбранной точки
-        d = xyz - last_chosen
-        dist2 = np.minimum(dist2, np.sum(d * d, axis=1))
+        nxt = int(np.argmax(dist2))
+        chosen[i] = nxt
+        last = xyz[nxt]
+        dist2 = np.minimum(dist2, np.sum((xyz - last) ** 2, axis=1))
 
-    return points[chosen_idx]
+    return points[chosen], time.time() - start
 
 
-def visualize_point_cloud(
-    points: np.ndarray,
-    title: str = "Point Cloud",
-    s: float = 1.0,
-    save_to: str = "./cloud.png",
-) -> None:
-    """Визуализация облака точек в 3D с помощью matplotlib.
-    
-    Если в данных есть столбец класса, используется цветовая кодировка по классам,
-    иначе точки окрашиваются по координате Z.
-    """
-    fig = plt.figure(figsize=(8, 6))
+SAMPLERS: Dict[str, Callable[[PointCloud, Config], Tuple[PointCloud, float]]] = {
+    "random": subsample_random,
+    "voxel": subsample_voxel,
+    "fps": subsample_fps,
+}
+
+
+def plot_cloud(points: PointCloud, path: Path, title: str) -> None:
+    fig = plt.figure(figsize=(7, 6))
     ax = fig.add_subplot(111, projection="3d")
 
-    # Меняем местами оси X и Y для более удобного ракурса
-    xyz = points[:, :3]
+    coords = points[:, :3]
     if points.shape[1] == 4:
-        c = points[:, 3]
-        im = ax.scatter(xyz[:, 1], xyz[:, 0], xyz[:, 2], s=s, c=c)
-        fig.colorbar(im, ax=ax, label="class")
+        colors = points[:, 3]
+        scatter = ax.scatter(coords[:, 1], coords[:, 0], coords[:, 2], s=1.5, c=colors)
+        fig.colorbar(scatter, ax=ax, label="class")
     else:
-        im = ax.scatter(xyz[:, 1], xyz[:, 0], xyz[:, 2], s=s)
+        ax.scatter(coords[:, 1], coords[:, 0], coords[:, 2], s=1.0, alpha=0.8)
 
     ax.set_title(title)
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
     plt.tight_layout()
-    plt.savefig(save_to)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(path, dpi=200)
+    plt.close(fig)
 
 
-@hydra.main(version_base=None, config_path="./", config_name="settings")
-def main(cfg: Config) -> None:
-    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
-    log = logging.getLogger("subsample")
+def run(cfg: Config) -> None:
+    log = logging.getLogger("cloud_sampling")
+    log.info("Config:\n%s", cfg)
 
-    start_all = time.time()
-    input_path = Path(cfg.input_path)
+    src = Path(cfg.input_path)
     out_dir = Path(cfg.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    log.info(f"Loading: {input_path}")
-    t0 = time.time()
-    pts = load_asc(str(input_path))
-    t1 = time.time()
-    log.info(f"Loaded {pts.shape[0]} points in {t1 - t0:.3f} s")
+    cloud = load_cloud(src)
+    log.info("Loaded %d points from %s", cloud.shape[0], src)
 
-    method = cfg.method.lower()
-    np.random.seed(cfg.seed)
+    sampler = SAMPLERS.get(cfg.method.lower())
+    if sampler is None:
+        raise ValueError(f"Unknown method '{cfg.method}', expected one of {list(SAMPLERS)}")
 
-    if method == "random":
-        t0 = time.time()
-        out = random_subsampling(pts, cfg.n_samples, seed=cfg.seed)
-        t1 = time.time()
-        log.info(f"Random subsampling => {out.shape[0]} pts, took {t1 - t0:.3f} s")
-        out_name = out_dir / f"subsampled_random_{out.shape[0]}.xyz"
-
-    elif method == "voxel":
-        t0 = time.time()
-        out = voxel_grid_subsampling(pts, cfg.voxel_size)
-        t1 = time.time()
-        log.info(
-            f"Voxel-grid subsampling (voxel_size={cfg.voxel_size}) => {out.shape[0]} pts, took {t1 - t0:.3f} s"
-        )
-        out_name = out_dir / f"subsampled_voxel_{cfg.voxel_size:.3f}_{out.shape[0]}.xyz"
-
-    elif method == "fps":
-        t0 = time.time()
-        init_idx = cfg.fps_init_index
-        out = farthest_point_sampling(pts, cfg.n_samples, init_index=init_idx)
-        t1 = time.time()
-        log.info(f"FPS subsampling => {out.shape[0]} pts, took {t1 - t0:.3f} s")
-        out_name = out_dir / f"subsampled_fps_{out.shape[0]}.xyz"
-
-    else:
-        raise ValueError(f"Unknown method: {method}. Choose from random | voxel | fps")
+    sampled, duration = sampler(cloud, cfg)
+    log.info("Method %s -> %d points (%.3f s)", cfg.method, sampled.shape[0], duration)
 
     if cfg.save_xyz:
-        save_xyz(out_name, out)
-        log.info(f"Saved subsampled cloud to: {out_name}")
+        out_path = out_dir / f"{cfg.method}_subsampled_{sampled.shape[0]}.xyz"
+        write_cloud(out_path, sampled)
+        log.info("Saved cloud: %s", out_path)
 
     if cfg.visualize:
-        # choose marker size adaptively
-        s = max(0.1, 20_000.0 / max(out.shape[0], 1))
-        visualize_point_cloud(
-            out,
-            title=f"Subsampled ({method}) - {out.shape[0]} pts",
-            s=s,
-            save_to=cfg.save_vis_to,
+        s = max(0.1, 20_000.0 / max(sampled.shape[0], 1))
+        plot_cloud(
+            sampled,
+            Path(cfg.save_vis_to),
+            title=f"{cfg.method.upper()} | {sampled.shape[0]} pts (s={s:.2f})",
         )
+        log.info("Saved preview: %s", cfg.save_vis_to)
 
-    log.info(f"Total time: {time.time() - start_all:.3f} s")
+
+@hydra.main(version_base=None, config_path="./", config_name="config")
+def main(cfg: DictConfig) -> None:
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+    run(Config(**cfg))
 
 
 if __name__ == "__main__":

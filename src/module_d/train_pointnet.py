@@ -154,7 +154,7 @@ def plot_confusion(conf: np.ndarray, class_names: Sequence[str], save_path: Path
 
 
 def main():
-    cfg = OmegaConf.load(Path(__file__).with_name("settings.yaml"))
+    cfg = OmegaConf.load(Path(__file__).with_name("conf.yaml"))
     torch.manual_seed(int(cfg.seed))
 
     data_cfg = DataConfig(

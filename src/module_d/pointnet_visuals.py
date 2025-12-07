@@ -88,7 +88,7 @@ def main():
     )
     args = parser.parse_args()
 
-    cfg = OmegaConf.load(Path(__file__).with_name("settings.yaml"))
+    cfg = OmegaConf.load(Path(__file__).with_name("conf.yaml"))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     data_cfg = DataConfig(
