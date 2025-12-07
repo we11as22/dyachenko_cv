@@ -1,0 +1,33 @@
+seed: 17
+
+data:
+  root: "../../../datasets/ModelNet10"
+  num_points: 1024
+  train_cap: 180        # per-class cap to keep epochs quick
+  test_cap: 60
+  download_if_missing: false
+
+model:
+  dropout: 0.3
+
+training:
+  max_epochs: 60
+  batch_size: 32
+  num_workers: 4
+  device: "cuda"        # cpu, cuda, or mps
+  artifacts_dir: "./artifacts"
+  optimizer:
+    lr: 0.001
+    weight_decay: 0.0001
+  scheduler:
+    step_size: 18
+    gamma: 0.5
+
+loss:
+  feature_transform_reg_weight: 0.001
+
+evaluation:
+  save_confusion_matrix: true
+  visualize_samples: 9
+  curves_path: "./artifacts/training_curves.png"
+  confusion_path: "./artifacts/confusion.png"
