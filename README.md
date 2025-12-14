@@ -7,6 +7,7 @@
 - `src/module_b` — цвета и скалярные поля.
 - `src/module_c` — заметки по Semantic3D.
 - `src/module_d` — мой пайплайн PointNet для ModelNet.
+- `src/module_e` — PointNet для семантической сегментации облаков точек.
 
 ## Быстрый старт
 1. Установить [uv](https://docs.astral.sh/uv/getting-started/installation/).
