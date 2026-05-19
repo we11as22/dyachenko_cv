@@ -26,6 +26,7 @@ Pipeline:
 | `../data/` | исходные PLY-файлы |
 | `outputs/` | реконструированные mesh-модели (`*.ply`) |
 | `visualizations/` | PNG-визуализации сегментов |
+| `figures/` | небольшая выборка визуализаций для отчёта и сдачи |
 | `metrics/segments_metrics.csv` | метрики по каждому сегменту |
 | `metrics/summary.json` | сводка по запуску |
 | `REPORT.md` | отчёт по алгоритму и результатам |
@@ -127,5 +128,6 @@ python scripts/run_reconstruction.py --force-method ball_pivoting --output-dir o
 - `outputs/<имя_облака>/label_XX_<method>.ply` — mesh сегмента;
 - `outputs/<имя_облака>/<имя_облака>_merged.ply` — собранная модель файла;
 - `visualizations/<имя_облака>/label_XX.png` — сравнение облака и mesh;
+- `figures/*.png` — компактная подборка визуализаций, которая коммитится в репозиторий;
 - `metrics/segments_metrics.csv` — признаки, класс, метод и метрики качества;
 - `metrics/summary.json` — глобальная сводка.

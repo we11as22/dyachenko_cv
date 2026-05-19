@@ -178,6 +178,7 @@ python scripts/run_reconstruction.py --force-method ball_pivoting --output-dir o
 
 - `outputs/` — реконструированные mesh-модели сегментов и собранные модели исходных облаков;
 - `visualizations/` — визуальное сравнение облака точек и реконструированной поверхности;
+- `figures/` — компактная выборка из 8 PNG-визуализаций для отчёта и демонстрации на сдаче;
 - `metrics/segments_metrics.csv` — полные метрики по каждому сегменту;
 - `metrics/summary.json` — агрегированная сводка запуска.
 
