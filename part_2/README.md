@@ -1,28 +1,11 @@
-# Часть 2 — сравнение моделей сегментации
+# Часть 2
 
-Семантическая сегментация облаков точек (датасет клапанов, PLY, 10 классов).
+| Задание | Папка | Описание |
+|---------|-------|----------|
+| **1** | [`task_1/`](task_1/) | Сравнение моделей сегментации — см. [README](task_1/README.md) и [отчёт](task_1/REPORT.md) |
+| **2** | [`task_2/`](task_2/) | Адаптивная реконструкция поверхностей — см. [README](task_2/README.md) и [отчёт](task_2/REPORT.md) |
 
-## Содержимое
+Окружение для задания 1: `pip` + [`task_1/requirements.txt`](task_1/requirements.txt).  
+Окружение для задания 2: `pip` + [`task_2/requirements.txt`](task_2/requirements.txt).
 
-| Путь | Назначение |
-|------|------------|
-| [`REPORT.md`](REPORT.md) | **Отчёт** — сравнение экспериментов (OA, mIoU, F1, IoU по классам) |
-| `scripts/` | Скрипты обучения: PointNet++, DGCNN, Point Transformer, KPConv |
-| `task_*/metrics/` | Результаты прогонов (`results.csv`) |
-| `data/` | PLY-файлы (локально, в git не коммитятся) |
-| `requirements.txt` | Зависимости части 2 |
-
-## Запуск
-
-```sh
-cd part_2
-pip install -r requirements.txt
-# положить *.ply в data/
-python scripts/train_pointnet2.py
-python scripts/train_dgcnn.py
-python scripts/train_point_transformer.py
-python scripts/train_kpconv.py
-```
-
-Чекпоинты пишутся в `task_*/checkpoints/` (в git не попадают).  
-Итоговое сравнение моделей — в [`REPORT.md`](REPORT.md).
+Датасет: `data/` (PLY, в git не коммитится) — общий для `task_1`, `task_2`, …

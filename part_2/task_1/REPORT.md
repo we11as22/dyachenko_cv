@@ -6,7 +6,7 @@
 Для каждого сэмпла берётся **4096** точек; train/val/test — **70% / 15% / 15%**, seed **42**.  
 Метрики на тесте: **OA** (overall accuracy), **mIoU**, **macro-F1**, IoU по классам 0–9.
 
-Скрипты: `part_2/scripts/train_*.py`. Сырые метрики: `part_2/task_*/metrics/results.csv`.
+Скрипты: `part_2/task_1/scripts/train_*.py`. Сырые метрики: `part_2/task_1/task_*/metrics/results.csv`.
 
 ## Сводная таблица (тест)
 
@@ -63,8 +63,8 @@
 ## Воспроизведение
 
 ```sh
-cd part_2
-# положить *.ply в data/
+cd part_2/task_1
+# положить *.ply в ../data/  (или part_2/data/)
 pip install -r requirements.txt
 python scripts/train_pointnet2.py
 python scripts/train_dgcnn.py

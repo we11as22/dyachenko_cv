@@ -1,0 +1,12 @@
+# Generated meshes and previews can be large.
+outputs*/
+visualizations*/
+metrics*_smoke/
+metrics*/_tmp/
+
+# Keep reproducible metrics in git.
+!metrics/*.csv
+!metrics/*.json
+
+__pycache__/
+*.py[cod]

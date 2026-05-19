@@ -1,0 +1,40 @@
+{
+  "config": {
+    "data_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/data",
+    "output_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/task_2/outputs",
+    "metrics_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/task_2/metrics",
+    "visualization_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/task_2/visualizations",
+    "min_segment_points": 80,
+    "voxel_size": 0.0,
+    "max_points_per_segment": 3500,
+    "normal_knn": 24,
+    "poisson_depth": 7,
+    "alpha_factor": 2.2,
+    "ball_radius_factor": 1.8,
+    "quality_sample_points": 5000,
+    "max_files": null,
+    "seed": 42,
+    "workers": 1,
+    "force_method": null,
+    "isolate_files": true,
+    "save_segment_meshes": true,
+    "save_visualizations": true,
+    "log_files": false
+  },
+  "segments_total": 4440,
+  "segments_ok": 4440,
+  "segments_failed": 0,
+  "geometry_types": {
+    "tube": 1170,
+    "complex": 1961,
+    "sphere": 1304,
+    "plane": 5
+  },
+  "methods": {
+    "ball_pivoting": 1230,
+    "poisson": 3197,
+    "alpha_shape": 13
+  },
+  "mean_cloud_to_mesh": 1.199558631604945,
+  "mean_accuracy_ratio": 0.9167676501634291
+}

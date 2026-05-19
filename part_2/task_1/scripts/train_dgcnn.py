@@ -20,7 +20,7 @@ random.seed(SEED); np.random.seed(SEED)
 torch.manual_seed(SEED); torch.cuda.manual_seed_all(SEED)
 
 ROOT      = os.path.join(os.path.dirname(__file__), "..")
-DATA_DIR  = os.path.join(ROOT, "data")
+DATA_DIR  = os.path.join(ROOT, "..", "data")
 CKPT_DIR  = os.path.join(ROOT, "task_2_dgcnn", "checkpoints")
 METR_DIR  = os.path.join(ROOT, "task_2_dgcnn", "metrics")
 os.makedirs(CKPT_DIR, exist_ok=True)

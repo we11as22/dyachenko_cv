@@ -1,0 +1,37 @@
+{
+  "config": {
+    "data_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/data",
+    "output_dir": "outputs_alpha_50",
+    "metrics_dir": "metrics_alpha_50",
+    "visualization_dir": "visualizations_alpha_50",
+    "min_segment_points": 80,
+    "voxel_size": 0.0,
+    "max_points_per_segment": 3500,
+    "normal_knn": 24,
+    "poisson_depth": 7,
+    "alpha_factor": 2.2,
+    "ball_radius_factor": 1.8,
+    "quality_sample_points": 5000,
+    "max_files": 50,
+    "seed": 42,
+    "workers": 1,
+    "force_method": "alpha_shape",
+    "isolate_files": true,
+    "save_segment_meshes": true,
+    "save_visualizations": true,
+    "log_files": false
+  },
+  "segments_total": 450,
+  "segments_ok": 450,
+  "segments_failed": 0,
+  "geometry_types": {
+    "tube": 114,
+    "complex": 201,
+    "sphere": 135
+  },
+  "methods": {
+    "alpha_shape": 450
+  },
+  "mean_cloud_to_mesh": 2.045820480043004,
+  "mean_accuracy_ratio": 0.8841292813359519
+}
