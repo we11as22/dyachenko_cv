@@ -1,0 +1,2 @@
+model,test_oa,test_miou,test_f1,class_0_iou,class_1_iou,class_2_iou,class_3_iou,class_4_iou,class_5_iou,class_6_iou,class_7_iou,class_8_iou,class_9_iou
+point_transformer,0.9731,0.9121,0.9520,0.9727,0.8922,0.8935,0.9394,0.6873,0.9273,0.9476,0.9607,0.9337,0.9666

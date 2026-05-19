@@ -1,24 +1,16 @@
-# 3D Coursework Sandbox
+# 3D Coursework — Dyachenko
 
-Набор черновиков по обработке облаков точек и 3D-геометрии.
+Университетские задания по 3D и облакам точек. Две независимые части:
 
-## Структура
-- `src/module_a` — базовые операции с облаками (сэмплинг, сегментация, фильтры).
-- `src/module_b` — цвета и скалярные поля.
-- `src/module_c` — заметки по Semantic3D.
-- `src/module_d` — мой пайплайн PointNet для ModelNet.
-- `src/module_e` — PointNet для семантической сегментации облаков точек.
+| Часть | Папка | Описание |
+|-------|-------|----------|
+| **1** | [`part_1/`](part_1/) | Модули a–e: сэмплинг, цвета, Semantic3D, PointNet — см. [README](part_1/README.md) |
+| **2** | [`part_2/`](part_2/) | Сравнение архитектур сегментации — см. [README](part_2/README.md) и [отчёт](part_2/REPORT.md) |
 
-## Быстрый старт
-1. Установить [uv](https://docs.astral.sh/uv/getting-started/installation/).
-2. В корне:
-   ```sh
-   uv sync
-   ```
-3. Пример запуска обучения в module_d:
-   ```sh
-   cd src/module_d
-   uv run train_pointnet.py
-   ```
+У каждой части своё окружение (`part_1`: uv, `part_2`: pip + `requirements.txt`).
 
-Параметры можно править в соответствующих `settings.yaml` внутри модулей.
+## Что не в git
+
+- `part_2/data/` — датасет PLY
+- `**/checkpoints/`, `*.pt`, `*.pth`, тяжёлые `outputs/`
+- виртуальные окружения и кэши (см. `.gitignore`)

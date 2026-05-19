@@ -1,0 +1,2 @@
+model,test_oa,test_miou,test_f1,class_0_iou,class_1_iou,class_2_iou,class_3_iou,class_4_iou,class_5_iou,class_6_iou,class_7_iou,class_8_iou,class_9_iou
+dgcnn,0.8768,0.7088,0.8065,0.9563,0.5932,0.4831,0.7969,0.1951,0.8309,0.9112,0.7667,0.7512,0.8033

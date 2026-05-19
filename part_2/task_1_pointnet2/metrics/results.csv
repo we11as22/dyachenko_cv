@@ -1,0 +1,2 @@
+model,test_oa,test_miou,test_f1,class_0_iou,class_1_iou,class_2_iou,class_3_iou,class_4_iou,class_5_iou,class_6_iou,class_7_iou,class_8_iou,class_9_iou
+pointnet2,0.9718,0.9012,0.9454,0.9855,0.9001,0.7971,0.9374,0.6676,0.9296,0.9557,0.9490,0.9270,0.9632

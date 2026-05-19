@@ -1,0 +1,2 @@
+model,test_oa,test_miou,test_f1,class_0_iou,class_1_iou,class_2_iou,class_3_iou,class_4_iou,class_5_iou,class_6_iou,class_7_iou,class_8_iou,class_9_iou
+kpconv,0.4134,0.2761,0.3954,0.8061,0.1665,0.0532,0.1118,0.0908,0.2900,0.3820,0.4354,0.1816,0.2431

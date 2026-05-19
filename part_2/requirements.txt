@@ -1,0 +1,16 @@
+# Core
+numpy>=1.21.0
+torch>=1.13.0
+
+# 3D Point Cloud
+open3d>=0.15.0
+
+# Metrics & ML
+scikit-learn>=1.0.0
+
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.12.0
+
+# Utils
+tqdm>=4.62.0
