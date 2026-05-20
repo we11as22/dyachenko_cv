@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 
 import matplotlib
@@ -69,6 +70,39 @@ def read_ascii_ply(path: Path) -> tuple[np.ndarray, np.ndarray]:
     return points, labels
 
 
+def cloud_signature(points: np.ndarray) -> tuple[float, float, float, float]:
+    mins = points.min(axis=0)
+    maxs = points.max(axis=0)
+    extent = maxs - mins
+    center = points.mean(axis=0)
+    return float(len(points)), float(extent.max()), float(center[2]), float(extent[2])
+
+
+def select_diverse_files(files: list[Path], count: int) -> list[Path]:
+    """Pick files that differ in size/shape rather than evenly by filename."""
+    if count >= len(files):
+        return files
+
+    scored: list[tuple[Path, tuple[float, float, float, float]]] = []
+    for path in files:
+        points, _ = read_ascii_ply(path)
+        scored.append((path, cloud_signature(points)))
+
+    # Sort by point count, then pick evenly spaced indices for diversity.
+    scored.sort(key=lambda item: item[1][0])
+    indices = np.linspace(0, len(scored) - 1, num=count, dtype=int)
+    selected = [scored[i][0] for i in indices]
+
+    # Avoid accidental duplicates while preserving order.
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for path in selected:
+        if path.name not in seen:
+            unique.append(path)
+            seen.add(path.name)
+    return unique
+
+
 def subsample(points: np.ndarray, labels: np.ndarray, max_points: int, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
     if len(points) <= max_points:
         return points, labels
@@ -76,37 +110,57 @@ def subsample(points: np.ndarray, labels: np.ndarray, max_points: int, rng: np.r
     return points[idx], labels[idx]
 
 
+def normalize_for_view(points: np.ndarray) -> np.ndarray:
+    centered = points - points.mean(axis=0)
+    scale = float(np.linalg.norm(centered, axis=1).max())
+    if scale <= 1e-12:
+        return centered
+    return centered / scale
+
+
+def view_angles(path: Path) -> tuple[float, float]:
+    digest = hashlib.sha1(path.name.encode("utf-8")).hexdigest()
+    azim = int(digest[:4], 16) % 360
+    elev = 15 + (int(digest[4:6], 16) % 35)
+    return elev, azim
+
+
 def set_equal_axes(ax: plt.Axes, points: np.ndarray) -> None:
-    mins = points.min(axis=0)
-    maxs = points.max(axis=0)
-    center = (mins + maxs) / 2.0
-    radius = max(float((maxs - mins).max()) / 2.0, 1e-6)
-    ax.set_xlim(center[0] - radius, center[0] + radius)
-    ax.set_ylim(center[1] - radius, center[1] + radius)
-    ax.set_zlim(center[2] - radius, center[2] + radius)
+    radius = max(float(np.linalg.norm(points, axis=1).max()), 1e-6)
+    ax.set_xlim(-radius, radius)
+    ax.set_ylim(-radius, radius)
+    ax.set_zlim(-radius, radius)
 
 
 def save_visualization(path: Path, points: np.ndarray, labels: np.ndarray, output_path: Path) -> None:
+    view_points = normalize_for_view(points)
+    elev, azim = view_angles(path)
+
     fig = plt.figure(figsize=(12, 5))
 
     ax1 = fig.add_subplot(1, 2, 1, projection="3d")
     colors = LABEL_COLORS[labels % len(LABEL_COLORS)]
-    ax1.scatter(points[:, 0], points[:, 1], points[:, 2], c=colors, s=1, linewidths=0)
-    ax1.set_title(f"{path.stem}\ncolored by label")
-    set_equal_axes(ax1, points)
+    ax1.scatter(view_points[:, 0], view_points[:, 1], view_points[:, 2], c=colors, s=2, linewidths=0)
+    ax1.set_title("colored by label")
+    set_equal_axes(ax1, view_points)
+    ax1.view_init(elev=elev, azim=azim)
     ax1.set_xlabel("x")
     ax1.set_ylabel("y")
     ax1.set_zlabel("z")
 
     ax2 = fig.add_subplot(1, 2, 2, projection="3d")
-    ax2.scatter(points[:, 0], points[:, 1], points[:, 2], c="#666666", s=1, linewidths=0, alpha=0.65)
+    ax2.scatter(view_points[:, 0], view_points[:, 1], view_points[:, 2], c="#666666", s=2, linewidths=0, alpha=0.7)
     ax2.set_title("geometry only")
-    set_equal_axes(ax2, points)
+    set_equal_axes(ax2, view_points)
+    ax2.view_init(elev=elev + 12, azim=azim + 35)
     ax2.set_xlabel("x")
     ax2.set_ylabel("y")
     ax2.set_zlabel("z")
 
-    fig.suptitle(f"{path.name} | points={len(points)} | labels={len(np.unique(labels))}", fontsize=11)
+    fig.suptitle(
+        f"{path.name} | points={len(points)} | labels={len(np.unique(labels))} | view elev={elev}, azim={azim}",
+        fontsize=11,
+    )
     fig.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=150)
@@ -120,6 +174,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=root / "data_vis", help="Directory for PNG previews.")
     parser.add_argument("--max-files", type=int, default=6, help="How many PLY files to visualize.")
     parser.add_argument("--max-points", type=int, default=6000, help="Max points per cloud for plotting.")
+    parser.add_argument("--files", nargs="*", default=None, help="Explicit list of PLY filenames to visualize.")
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args()
 
@@ -131,12 +186,14 @@ def main() -> None:
     files = sorted(args.data_dir.glob("*.ply"))
     if not files:
         raise FileNotFoundError(f"no .ply files found in {args.data_dir}")
-    if args.max_files is not None:
-        if args.max_files >= len(files):
-            selected = files
-        else:
-            indices = np.linspace(0, len(files) - 1, num=args.max_files, dtype=int)
-            selected = [files[i] for i in indices]
+
+    if args.files:
+        selected = [args.data_dir / name for name in args.files]
+        for path in selected:
+            if not path.exists():
+                raise FileNotFoundError(path)
+    else:
+        selected = select_diverse_files(files, args.max_files)
 
     print(f"Visualizing {len(selected)} files from {args.data_dir}")
     for path in selected:
