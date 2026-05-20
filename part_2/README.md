@@ -9,3 +9,16 @@
 Окружение для задания 2: `pip` + [`task_2/requirements.txt`](task_2/requirements.txt).
 
 Датасет: `data/` (PLY, в git не коммитится) — общий для `task_1`, `task_2`, …
+
+## Визуализация датасета
+
+| Путь | Назначение |
+|------|------------|
+| [`scripts/visualize_point_clouds.py`](scripts/visualize_point_clouds.py) | скрипт визуализации PLY из `data/` |
+| [`data_vis/`](data_vis/) | PNG-превью нескольких облаков для сдачи |
+
+```sh
+cd part_2
+source ~/envs/.venv/bin/activate
+python scripts/visualize_point_clouds.py --max-files 6
+```
