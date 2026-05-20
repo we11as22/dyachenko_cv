@@ -1,0 +1,45 @@
+{
+  "config": {
+    "data_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/data",
+    "metrics_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/task_3/metrics",
+    "visualization_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/task_3/visualizations",
+    "figures_dir": "/home/asudakov/projects/sharaga/dyachenko_cv/part_2/task_3/figures",
+    "min_segment_points": 80,
+    "max_points_per_segment": 3500,
+    "normal_knn": 24,
+    "density_knn": 12,
+    "max_files": null,
+    "seed": 42,
+    "save_visualizations": true,
+    "save_figures": true,
+    "log_files": true
+  },
+  "segments_total": 4489,
+  "segments_ok": 4489,
+  "density_classes": {
+    "medium": 2001,
+    "low": 1014,
+    "high": 1474
+  },
+  "shape_classes": {
+    "linear": 1485,
+    "anisotropic": 1125,
+    "planar": 1153,
+    "volumetric": 726
+  },
+  "surface_classes": {
+    "weakly_curved": 2547,
+    "smooth": 565,
+    "strongly_curved": 1376,
+    "complex": 1
+  },
+  "normal_classes": {
+    "medium": 981,
+    "high": 3508
+  },
+  "integrity_classes": {
+    "intact": 2513,
+    "mostly_intact": 1259,
+    "fragmented": 717
+  }
+}

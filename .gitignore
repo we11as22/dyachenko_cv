@@ -24,11 +24,12 @@ wheels/
 # Data & training artifacts
 datasets/
 data/
+!part_2/data/
+!part_2/data/**
 outputs/
 artifacts/
 logs/
 **/checkpoints/
-part_2/data/
 *.ckpt
 *.pth
 *.pt

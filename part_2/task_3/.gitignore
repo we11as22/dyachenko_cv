@@ -1,0 +1,14 @@
+visualizations/*
+!visualizations/valve_0001_lidar_classes/
+!visualizations/valve_0001_lidar_classes/*.png
+!visualizations/valve_0002_lidar_classes/
+!visualizations/valve_0002_lidar_classes/*.png
+metrics*/_tmp/
+
+!metrics/*.csv
+!metrics/*.json
+!figures/*.png
+!figures/README.md
+
+__pycache__/
+*.py[cod]
